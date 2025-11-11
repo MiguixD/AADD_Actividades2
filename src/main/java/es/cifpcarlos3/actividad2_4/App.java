@@ -40,6 +40,7 @@ public class App {
                     System.out.println("(" + cuentas.size() + " Cuentas)");
                     break;
                 case 3:
+                    clienteDAO.insertarCliente();
                     break;
                 case 4:
                     break;
