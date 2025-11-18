@@ -9,4 +9,5 @@ public interface ClienteDAO {
     Cliente obtenerClientePorId(int id);
     void insertarCliente();
     int obtenerMaxIdCliente();
+    void eliminarCliente();
 }

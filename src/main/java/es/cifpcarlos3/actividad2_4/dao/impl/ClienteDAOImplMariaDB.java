@@ -3,6 +3,7 @@ package es.cifpcarlos3.actividad2_4.dao.impl;
 import es.cifpcarlos3.actividad2_4.App;
 import es.cifpcarlos3.actividad2_4.dao.ClienteDAO;
 import es.cifpcarlos3.actividad2_4.model.Cliente;
+import es.cifpcarlos3.actividad2_4.model.Cuenta;
 import es.cifpcarlos3.actividad2_4.util.DatabaseConnection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,6 +12,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
+import static es.cifpcarlos3.actividad2_4.App.leerInt;
 
 @Data
 @AllArgsConstructor
@@ -130,4 +133,41 @@ public class ClienteDAOImplMariaDB implements ClienteDAO {
         }
     }
 
+    @Override
+    public void eliminarCliente() {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("ID del cliente a eliminar: ");
+        int idCliente = leerInt(sc);
+
+        CuentaDAOImplMariaDB cuentaDAO = new CuentaDAOImplMariaDB(db);
+        List<Cuenta> cuentas = cuentaDAO.obtenerCuentasPorIdCliente(idCliente);
+
+        Cliente cliente = obtenerClientePorId(idCliente);
+
+        if(cliente != null) {
+            if(cuentas.isEmpty()) {
+                String consulta = "DELETE FROM t_cliente " +
+                        "WHERE id_cliente = ?";
+
+                try(var conn = db.getConn();
+                    var sentencia = conn.prepareStatement(consulta)) {
+
+                    sentencia.setInt(1, idCliente);
+
+                    int filas = sentencia.executeUpdate();
+
+                    System.out.println("Cliente eliminado correctamente. Filas afectadas: " + filas);
+
+                } catch (SQLException e) {
+                    System.err.println("Error SQL: " + e.getMessage());
+                    System.err.println("Estado SQL: " + e.getSQLState());
+                    System.err.println("Código error: " + e.getErrorCode());
+                }
+            } else {
+                System.out.println("No se puede eliminar: el cliente tiene cuentas asociadas.");
+            }
+        } else {
+            System.out.println("No se puede eliminar: no existe el cleinte.");
+        }
+    }
 }

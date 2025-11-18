@@ -52,6 +52,7 @@ public class App {
                     cuentaDAO.transferenciaEntreCuentas();
                     break;
                 case 7:
+                    clienteDAO.eliminarCliente();
                     break;
             }
         }

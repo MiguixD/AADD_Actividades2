@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +41,7 @@ public class CuentaDAOImplMariaDB implements CuentaDAO {
                 cuentas.add(new Cuenta(result.getInt("id_cuenta"),
                         result.getString("numero_cuenta"),
                         cliente,
-                        BigDecimal.valueOf(result.getLong("saldo"))));
+                        result.getBigDecimal("saldo")));
             }
 
         } catch (SQLException e) {
@@ -234,5 +235,39 @@ public class CuentaDAOImplMariaDB implements CuentaDAO {
         } else {
             System.out.println("Transferencia NO realizada (saldo insuficiente o cuenta inexistente) ");
         }
+    }
+
+    @Override
+    public List<Cuenta> obtenerCuentasPorIdCliente(int idCliente) {
+        List<Cuenta> cuentas = new ArrayList<>();
+
+        String consulta = "SELECT id_cuenta, numero_cuenta, id_cliente, saldo " +
+                "FROM t_cuenta " +
+                "WHERE id_cliente = ?";
+        try(var conn = db.getConn();
+            var sentencia = conn.prepareStatement(consulta)) {
+
+            sentencia.setInt(1, idCliente);
+
+            ResultSet result = sentencia.executeQuery();
+
+            while(result.next()) {
+
+                ClienteDAOImplMariaDB clienteDAO = new ClienteDAOImplMariaDB(db);
+                Cliente cliente = clienteDAO.obtenerClientePorId(result.getInt("id_cliente"));
+
+                cuentas.add(new Cuenta(result.getInt("id_cuenta"),
+                        result.getString("numero_cuenta"),
+                        cliente,
+                        result.getBigDecimal("saldo")));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error SQL: " + e.getMessage());
+            System.err.println("Estado SQL: " + e.getSQLState());
+            System.err.println("Código error: " + e.getErrorCode());
+        }
+
+        return cuentas;
     }
 }

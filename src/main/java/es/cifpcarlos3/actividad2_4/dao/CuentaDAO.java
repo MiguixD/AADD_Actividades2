@@ -11,4 +11,5 @@ public interface CuentaDAO {
     void actualizarSaldoCuenta();
     Cuenta obtenerCuentaPorId(int id);
     void transferenciaEntreCuentas();
+    List<Cuenta> obtenerCuentasPorIdCliente(int idCliente);
 }
