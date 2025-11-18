@@ -10,4 +10,5 @@ public interface ClienteDAO {
     void insertarCliente();
     int obtenerMaxIdCliente();
     void eliminarCliente();
+    Cliente obtenerClientePorDNI(String dni);
 }

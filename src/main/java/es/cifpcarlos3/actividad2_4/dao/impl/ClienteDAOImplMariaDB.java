@@ -111,25 +111,31 @@ public class ClienteDAOImplMariaDB implements ClienteDAO {
 
         int id = obtenerMaxIdCliente() + 1;
 
-        String consulta = "INSERT INTO t_cliente (id_cliente, dni, nombre, telefono, email) " +
-                "VALUES (?, ?, ?, ?, ?)";
+        Cliente cliente = obtenerClientePorDNI(dni);
 
-        try(var conn = db.getConn();
-            var sentencia = conn.prepareStatement(consulta)) {
+        if(cliente == null) {
+            String consulta = "INSERT INTO t_cliente (id_cliente, dni, nombre, telefono, email) " +
+                    "VALUES (?, ?, ?, ?, ?)";
 
-            sentencia.setInt(1, id);
-            sentencia.setString(2, dni);
-            sentencia.setString(3, nombre);
-            sentencia.setString(4, telefono);
-            sentencia.setString(5, email);
-            int filas = sentencia.executeUpdate();
+            try(var conn = db.getConn();
+                var sentencia = conn.prepareStatement(consulta)) {
 
-            System.out.println("Cliente insertado correctamente. Filas afectadas: " + filas);
+                sentencia.setInt(1, id);
+                sentencia.setString(2, dni);
+                sentencia.setString(3, nombre);
+                sentencia.setString(4, telefono);
+                sentencia.setString(5, email);
+                int filas = sentencia.executeUpdate();
 
-        } catch (SQLException e) {
-            System.err.println("Error SQL: " + e.getMessage());
-            System.err.println("Estado SQL: " + e.getSQLState());
-            System.err.println("Código error: " + e.getErrorCode());
+                System.out.println("Cliente insertado correctamente. Filas afectadas: " + filas);
+
+            } catch (SQLException e) {
+                System.err.println("Error SQL: " + e.getMessage());
+                System.err.println("Estado SQL: " + e.getSQLState());
+                System.err.println("Código error: " + e.getErrorCode());
+            }
+        } else {
+            System.out.println("No se pudo insertar el cliente: DNI duplicado.");
         }
     }
 
@@ -169,5 +175,34 @@ public class ClienteDAOImplMariaDB implements ClienteDAO {
         } else {
             System.out.println("No se puede eliminar: no existe el cleinte.");
         }
+    }
+
+    @Override
+    public Cliente obtenerClientePorDNI(String dni) {
+        Cliente cliente = null;
+        String consulta = "SELECT id_cliente, dni, nombre, telefono, email " +
+                "FROM t_cliente " +
+                "WHERE dni = ?";
+        try(var conn = db.getConn();
+            var sentencia = conn.prepareStatement(consulta)) {
+
+            sentencia.setString(1, dni);
+            var result = sentencia.executeQuery();
+
+            while(result.next()) {
+                cliente = new Cliente(result.getInt("id_cliente"),
+                        result.getString("dni"),
+                        result.getString("nombre"),
+                        result.getString("telefono"),
+                        result.getString("email"));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error SQL: " + e.getMessage());
+            System.err.println("Estado SQL: " + e.getSQLState());
+            System.err.println("Código error: " + e.getErrorCode());
+        }
+
+        return cliente;
     }
 }

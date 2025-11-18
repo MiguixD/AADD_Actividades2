@@ -87,24 +87,31 @@ public class CuentaDAOImplMariaDB implements CuentaDAO {
 
         int id = obtenerMaxIdCuenta() + 1;
 
-        String consulta = "INSERT INTO t_cuenta (id_cuenta, numero_cuenta, id_cliente, saldo) " +
-                "VALUES (?, ?, ?, ?)";
+        ClienteDAOImplMariaDB clienteDAO = new ClienteDAOImplMariaDB(db);
+        Cliente cliente = clienteDAO.obtenerClientePorId(idCliente);
 
-        try(var conn = db.getConn();
-            var sentencia = conn.prepareStatement(consulta)) {
+        if(cliente != null) {
+            String consulta = "INSERT INTO t_cuenta (id_cuenta, numero_cuenta, id_cliente, saldo) " +
+                    "VALUES (?, ?, ?, ?)";
 
-            sentencia.setInt(1, id);
-            sentencia.setString(2, numCuenta);
-            sentencia.setInt(3, idCliente);
-            sentencia.setBigDecimal(4, saldoInicial);
-            int filas = sentencia.executeUpdate();
+            try(var conn = db.getConn();
+                var sentencia = conn.prepareStatement(consulta)) {
 
-            System.out.println("Cuenta insertada correctamente. Filas afectadas: " + filas);
+                sentencia.setInt(1, id);
+                sentencia.setString(2, numCuenta);
+                sentencia.setInt(3, idCliente);
+                sentencia.setBigDecimal(4, saldoInicial);
+                int filas = sentencia.executeUpdate();
 
-        } catch (SQLException e) {
-            System.err.println("Error SQL: " + e.getMessage());
-            System.err.println("Estado SQL: " + e.getSQLState());
-            System.err.println("Código error: " + e.getErrorCode());
+                System.out.println("Cuenta insertada correctamente. Filas afectadas: " + filas);
+
+            } catch (SQLException e) {
+                System.err.println("Error SQL: " + e.getMessage());
+                System.err.println("Estado SQL: " + e.getSQLState());
+                System.err.println("Código error: " + e.getErrorCode());
+            }
+        } else {
+            System.out.println("Error: el cliente " + idCliente + " no existe. No se creó la cuenta.");
         }
     }
 
