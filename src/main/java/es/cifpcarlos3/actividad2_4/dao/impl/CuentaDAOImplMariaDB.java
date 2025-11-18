@@ -11,6 +11,10 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
+
+import static es.cifpcarlos3.actividad2_4.App.leerBigDecimal;
+import static es.cifpcarlos3.actividad2_4.App.leerInt;
 
 @Data
 @AllArgsConstructor
@@ -46,5 +50,60 @@ public class CuentaDAOImplMariaDB implements CuentaDAO {
         }
 
         return cuentas;
+    }
+
+    @Override
+    public int obtenerMaxIdCuenta() {
+        int id = 0;
+        String consulta = "SELECT MAX(id_cuenta) AS 'max_id' " +
+                "FROM t_cuenta";
+        try(var conn = db.getConn();
+            var sentencia = conn.createStatement();
+            var result =  sentencia.executeQuery(consulta)) {
+
+            while(result.next()) {
+                id = result.getInt("max_id");
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error SQL: " + e.getMessage());
+            System.err.println("Estado SQL: " + e.getSQLState());
+            System.err.println("Código error: " + e.getErrorCode());
+        }
+
+        return id;
+    }
+
+    @Override
+    public void insertarCuenta() {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("ID del cliente: ");
+        int idCliente = leerInt(sc);
+        System.out.print("Número de cuenta: ");
+        String numCuenta = sc.nextLine();
+        System.out.print("Saldo inicial: ");
+        BigDecimal saldoInicial = leerBigDecimal(sc);
+
+        int id = obtenerMaxIdCuenta() + 1;
+
+        String consulta = "INSERT INTO t_cuenta (id_cuenta, numero_cuenta, id_cliente, saldo) " +
+                "VALUES (?, ?, ?, ?)";
+
+        try(var conn = db.getConn();
+            var sentencia = conn.prepareStatement(consulta)) {
+
+            sentencia.setInt(1, id);
+            sentencia.setString(2, numCuenta);
+            sentencia.setInt(3, idCliente);
+            sentencia.setBigDecimal(4, saldoInicial);
+            int filas = sentencia.executeUpdate();
+
+            System.out.println("Cuenta insertada correctamente. Filas afectadas: " + filas);
+
+        } catch (SQLException e) {
+            System.err.println("Error SQL: " + e.getMessage());
+            System.err.println("Estado SQL: " + e.getSQLState());
+            System.err.println("Código error: " + e.getErrorCode());
+        }
     }
 }

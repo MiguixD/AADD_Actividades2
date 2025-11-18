@@ -73,7 +73,7 @@ public class ClienteDAOImplMariaDB implements ClienteDAO {
     }
 
     @Override
-    public int obtenerMaxId() {
+    public int obtenerMaxIdCliente() {
         int id = 0;
         String consulta = "SELECT MAX(id_cliente) AS 'max_id' " +
                 "FROM t_cliente";
@@ -106,7 +106,7 @@ public class ClienteDAOImplMariaDB implements ClienteDAO {
         System.out.print("Email: ");
         String email = sc.nextLine();
 
-        int id = obtenerMaxId() + 1;
+        int id = obtenerMaxIdCliente() + 1;
 
         String consulta = "INSERT INTO t_cliente (id_cliente, dni, nombre, telefono, email) " +
                 "VALUES (?, ?, ?, ?, ?)";

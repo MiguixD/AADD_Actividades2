@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface CuentaDAO {
     List<Cuenta> obtenerCuentas();
+    int obtenerMaxIdCuenta();
+    void insertarCuenta();
 }

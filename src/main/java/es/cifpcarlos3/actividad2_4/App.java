@@ -43,6 +43,7 @@ public class App {
                     clienteDAO.insertarCliente();
                     break;
                 case 4:
+                    cuentaDAO.insertarCuenta();
                     break;
                 case 5:
                     break;
@@ -69,22 +70,24 @@ public class App {
     }
 
     public static int leerInt(Scanner sc) {
-        int num = 999;
-        try {
-            num = Integer.parseInt(sc.nextLine());
-        } catch (NumberFormatException e) {
-            System.out.println("Introduce int");
+        int num = 0;
+        while(!sc.hasNextInt()) {
+            System.out.println("Introduce número entero");
+            sc.next();
         }
+        num = sc.nextInt();
+        sc.nextLine();
         return num;
     }
 
     public static BigDecimal leerBigDecimal(Scanner sc) {
         BigDecimal numDecimal = null;
-        try {
-            numDecimal = sc.nextBigDecimal();
-        } catch (NumberFormatException e) {
-            System.out.println("Introduce decimal");
+        while(!sc.hasNextBigDecimal()) {
+            System.out.println("Introduce número decimal");
+            sc.next();
         }
+        numDecimal = sc.nextBigDecimal();
+        sc.nextLine();
         return numDecimal;
     }
 }

@@ -8,5 +8,5 @@ public interface ClienteDAO {
     List<Cliente> obtenerClientes();
     Cliente obtenerClientePorId(int id);
     void insertarCliente();
-    int obtenerMaxId();
+    int obtenerMaxIdCliente();
 }
