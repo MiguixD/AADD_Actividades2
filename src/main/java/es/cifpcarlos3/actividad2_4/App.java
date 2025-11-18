@@ -46,8 +46,10 @@ public class App {
                     cuentaDAO.insertarCuenta();
                     break;
                 case 5:
+                    cuentaDAO.actualizarSaldoCuenta();
                     break;
                 case 6:
+                    cuentaDAO.transferenciaEntreCuentas();
                     break;
                 case 7:
                     break;

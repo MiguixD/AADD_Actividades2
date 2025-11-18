@@ -106,4 +106,133 @@ public class CuentaDAOImplMariaDB implements CuentaDAO {
             System.err.println("Código error: " + e.getErrorCode());
         }
     }
+
+    @Override
+    public void actualizarSaldoCuenta() {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("ID de la cuenta: ");
+        int idCuenta = leerInt(sc);
+        System.out.println("Nuevo saldo: ");
+        BigDecimal saldo = leerBigDecimal(sc);
+
+        String consulta = "UPDATE t_cuenta " +
+                "SET saldo = ? " +
+                "WHERE id_cuenta = ?";
+
+        Cuenta cuenta = obtenerCuentaPorId(idCuenta);
+
+        if(cuenta != null) {
+            try(var conn = db.getConn();
+                var sentencia = conn.prepareStatement(consulta)) {
+
+                sentencia.setBigDecimal(1, saldo);
+                sentencia.setInt(2, idCuenta);
+
+                int filas = sentencia.executeUpdate();
+
+                System.out.println("Saldo actualizado correctamente. Filas afectadas: " + filas);
+
+            } catch (SQLException e) {
+                System.err.println("Error SQL: " + e.getMessage());
+                System.err.println("Estado SQL: " + e.getSQLState());
+                System.err.println("Código error: " + e.getErrorCode());
+            }
+        } else {
+            System.out.println("No se acutalizó ninguna cuenta (id no encontrado).");
+        }
+    }
+
+    @Override
+    public Cuenta obtenerCuentaPorId(int id) {
+        Cuenta cuenta = null;
+
+        String consulta = "SELECT id_cuenta, numero_cuenta, id_cliente, saldo " +
+                "FROM t_cuenta " +
+                "WHERE id_cuenta = ?";
+        try(var conn = db.getConn();
+            var sentencia = conn.prepareStatement(consulta)) {
+
+            sentencia.setInt(1, id);
+            var result = sentencia.executeQuery();
+
+            while(result.next()) {
+                ClienteDAOImplMariaDB clienteDAO = new ClienteDAOImplMariaDB(db);
+                Cliente cliente = clienteDAO.obtenerClientePorId(result.getInt("id_cliente"));
+
+                cuenta = new Cuenta(result.getInt("id_cuenta"),
+                        result.getString("numero_cuenta"),
+                        cliente,
+                        result.getBigDecimal("saldo"));
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error SQL: " + e.getMessage());
+            System.err.println("Estado SQL: " + e.getSQLState());
+            System.err.println("Código error: " + e.getErrorCode());
+        }
+
+        return cuenta;
+    }
+
+    @Override
+    public void transferenciaEntreCuentas() {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Cuenta origen (id): ");
+        int idCuentaOrigen = leerInt(sc);
+        System.out.println("Cuenta destino (id): ");
+        int idCuentaDestino = leerInt(sc);
+        System.out.println("Importe: ");
+        BigDecimal importe = leerBigDecimal(sc);
+
+        Cuenta cuentaOrigen = obtenerCuentaPorId(idCuentaOrigen);
+        Cuenta cuentaDestino = obtenerCuentaPorId(idCuentaDestino);
+
+        if(cuentaOrigen != null && cuentaDestino != null && cuentaOrigen.getSaldo().compareTo(importe) >= 0) {
+            String consulta1 = "UPDATE t_cuenta " +
+                    "SET saldo = saldo - ? " +
+                    "WHERE id_cuenta = ?";
+            String consulta2 = "UPDATE t_cuenta " +
+                    "SET saldo = saldo + ? " +
+                    "WHERE id_cuenta = ?";
+
+            try(var conn = db.getConn()) {
+                conn.setAutoCommit(false);
+
+                try( var sentencia1 = conn.prepareStatement(consulta1);
+                     var sentencia2 = conn.prepareStatement(consulta2)) {
+
+                    sentencia1.setBigDecimal(1, importe);
+                    sentencia1.setInt(2, idCuentaOrigen);
+
+                    sentencia2.setBigDecimal(1, importe);
+                    sentencia2.setInt(2, idCuentaDestino);
+
+                    int filas1 = sentencia1.executeUpdate();
+                    int filas2 = sentencia2.executeUpdate();
+                    int filas = filas1 + filas2;
+
+                    conn.commit();
+
+                    System.out.println("Transferencia OK. Filas afectadas: " + filas);
+
+                } catch (SQLException e) {
+                    System.err.println("Error SQL: " + e.getMessage());
+                    System.err.println("Estado SQL: " + e.getSQLState());
+                    System.err.println("Código error: " + e.getErrorCode());
+
+                    conn.rollback();
+
+                } finally {
+                    conn.setAutoCommit(true);
+                }
+
+            } catch (SQLException e) {
+                System.err.println("Error SQL: " + e.getMessage());
+                System.err.println("Estado SQL: " + e.getSQLState());
+                System.err.println("Código error: " + e.getErrorCode());
+            }
+        } else {
+            System.out.println("Transferencia NO realizada (saldo insuficiente o cuenta inexistente) ");
+        }
+    }
 }

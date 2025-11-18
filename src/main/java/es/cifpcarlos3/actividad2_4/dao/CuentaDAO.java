@@ -8,4 +8,7 @@ public interface CuentaDAO {
     List<Cuenta> obtenerCuentas();
     int obtenerMaxIdCuenta();
     void insertarCuenta();
+    void actualizarSaldoCuenta();
+    Cuenta obtenerCuentaPorId(int id);
+    void transferenciaEntreCuentas();
 }
